@@ -36,8 +36,8 @@ def main(args):
           'chain_stats-funded_txo_count' + ',' +
           'chain_stats-funded_txo_sum' + ',' +
           'chain_stats-spent_txo_count' + ',' +
-          'chain_stats-spent_txo_sum' + ',' +
-          'chain_stats-txo_sum' +
+          'chain_stats-spent_tx_sum' + ',' +
+          'chain_stats-tx_sum'  + ',' +
           'datetime')
     # logger.info("Starting loop")
     i = 0
