@@ -25,6 +25,9 @@ def main(args):
     # logger.info("Starting")
     # logger.info(args)
 
+    shortdelay = args.delay
+    longdelay = args.error
+
     df = read_excel(args.excel, sheet_name=args.sheet, engine='openpyxl')
     addresslist = df[args.column].to_list()
     # logger.info("Got excel file")
@@ -39,7 +42,7 @@ def main(args):
     # logger.info("Starting loop")
     i = 0
     while i < len (addresslist):
-        sys.stderr.write(str(i) +'/' + str( len(addresslist)))
+        sys.stderr.write(str(i) +'/' + str( len(addresslist)) + '\n')
         address = addresslist[i]
         api_url = mempool_api + address
         # logger.info(api_url)
@@ -59,14 +62,16 @@ def main(args):
                 str(response_native['chain_stats']['tx_count']) +
                 now.strftime("%Y-%m-%d %H:%M:%S")
             )
-            time.sleep(args.delay) 
+            time.sleep(shortdelay) 
             i = i + 1
         else:
             # logger.error("No success on url: "+api_url)
             sys.stderr.write("No success on url: "+api_url)
-            time.sleep(args.error)  # long time in case we are blocked
+            time.sleep(longdelay)  # long time in case we are blocked
+            shortdelay = shortdelay * args.increment
+            longdelay = longdelay * args.increment
 
-    logger.info('-done-')
+    # logger.info('-done-')
 
 
 if __name__ == "__main__":
@@ -85,7 +90,9 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--delay", action="store",
                         default=1, help="Delay in seconds between api default 1")
     parser.add_argument("-e", "--error", action="store",
-                        default=600, help="Delay on error in seconds between api default 600")
+                        default=30, help="Delay on error in seconds between api default 30")
+    parser.add_argument("-i", "--increment", action="store",
+                        default=2, help="incremeting multiplier for delays default 2")                        
 
     # Optional argument which requires a parameter (eg. -d test)
     # parser.add_argument("-n", "--name", action="store", dest="name")
