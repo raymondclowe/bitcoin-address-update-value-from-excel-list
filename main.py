@@ -33,11 +33,11 @@ def main(args):
     # logger.info("Got excel file")
     # print(addresslist)
     print('address' + ',' +
-          'chain_stats][funded_txo_count' + ',' +
-          'chain_stats][funded_txo_sum' + ',' +
-          'chain_stats][spent_txo_sum' + ',' +
-          'chain_stats][spent_txo_sum' + ',' +
-          'chain_stats][txo_sum' +
+          'chain_stats-funded_txo_count' + ',' +
+          'chain_stats-funded_txo_sum' + ',' +
+          'chain_stats-spent_txo_count' + ',' +
+          'chain_stats-spent_txo_sum' + ',' +
+          'chain_stats-txo_sum' +
           'datetime')
     # logger.info("Starting loop")
     i = 0
@@ -57,7 +57,7 @@ def main(args):
                 response_native['address'] + ',' +
                 str(response_native['chain_stats']['funded_txo_count']) + ',' +
                 str(response_native['chain_stats']['funded_txo_sum']) + ',' +
-                str(response_native['chain_stats']['spent_txo_sum']) + ',' +
+                str(response_native['chain_stats']['spent_txo_count']) + ',' +
                 str(response_native['chain_stats']['spent_txo_sum']) + ',' +
                 str(response_native['chain_stats']['tx_count']) +',' +
                 now.strftime("%Y-%m-%d %H:%M:%S")
