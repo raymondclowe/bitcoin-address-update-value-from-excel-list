@@ -59,7 +59,7 @@ def main(args):
                 str(response_native['chain_stats']['funded_txo_sum']) + ',' +
                 str(response_native['chain_stats']['spent_txo_sum']) + ',' +
                 str(response_native['chain_stats']['spent_txo_sum']) + ',' +
-                str(response_native['chain_stats']['tx_count']) +
+                str(response_native['chain_stats']['tx_count']) +',' +
                 now.strftime("%Y-%m-%d %H:%M:%S")
             )
             time.sleep(shortdelay) 
