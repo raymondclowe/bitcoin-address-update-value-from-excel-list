@@ -1,4 +1,4 @@
-# bitcoin-address-update-value-from-excel-list
+# bitcoin address update value from excel list
 
 Tool designed to be run scheduled once a day to get the latest balances on a list of bitcoin addresses.
 
