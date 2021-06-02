@@ -25,8 +25,8 @@ def main(args):
     # logger.info("Starting")
     # logger.info(args)
 
-    shortdelay = args.delay
-    longdelay = args.error
+    shortdelay = int(args.delay)
+    longdelay = int(args.error)
 
     df = read_excel(args.excel, sheet_name=args.sheet, engine='openpyxl')
     addresslist = df[args.column].to_list()
@@ -68,6 +68,10 @@ def main(args):
             # logger.error("No success on url: "+api_url)
             sys.stderr.write("No success on url: "+api_url)
             time.sleep(longdelay)  # long time in case we are blocked
+            if shortdelay == 0:
+                shortdelay = 1
+            if longdelay == 0:
+                longdelay = 30
             shortdelay = shortdelay * args.increment
             longdelay = longdelay * args.increment
 
