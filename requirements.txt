@@ -1,1 +1,5 @@
 logzero  # see github.com/metachris/logzero
+pandas
+requests
+openpyxl
+tqdm
