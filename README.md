@@ -7,3 +7,5 @@ The input list is an excel file column, and the output is to stdout suitable for
 The idea is that you can then have a get data link in excel to the csv, and vlookup the balances against those addresses.
 
 Reads data from mempool.spaces and allows self adjusting delaying to avoid hiting usage limits.
+
+Retries on error loading api and never gives up.
