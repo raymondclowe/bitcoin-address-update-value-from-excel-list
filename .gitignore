@@ -70,7 +70,7 @@ target/
 .ipynb_checkpoints
 
 # pyenv
-.python-version
+# .python-version
 
 # celery beat schedule file
 celerybeat-schedule
@@ -103,3 +103,7 @@ ENV/
 *.cmd
 *.sh
 *.csv
+addresses.xlsx
+Electrum-4.6.2.tar.gz
+Electrum-4.6.2.tar.gz.asc
+ThomasV.asc
