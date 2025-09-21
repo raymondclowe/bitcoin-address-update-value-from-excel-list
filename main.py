@@ -16,8 +16,57 @@ import json
 import time
 from datetime import datetime
 import sys
+import subprocess
 
 mempool_api = "https://mempool.space/api/address/"
+
+
+def get_balance_mempool(address):
+    """Query balance from Mempool API."""
+    api_url = mempool_api + address
+    response = requests.get(api_url)
+    if response.ok:
+        return json.loads(response.text)
+    else:
+        raise Exception(f"Failed to query Mempool: {response.status_code}")
+
+
+def get_balance_electrum(address, server):
+    """Query balance from Electrum server."""
+    electrum_path = "/home/rcl/Applications/electrum-4.6.2-x86_64_86a6c3900159c0ac8c769d03b1472543.AppImage"
+    cmd = [electrum_path, 'getaddressbalance', address, '--server', server]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode == 0:
+        data = json.loads(result.stdout.strip())
+        return data
+    else:
+        raise Exception(f"Electrum error: {result.stderr}")
+
+
+def print_mempool_data(data, now):
+    """Print CSV line for Mempool data."""
+    print(
+        data['address'] + ',' +
+        str(data['chain_stats']['funded_txo_count']) + ',' +
+        str(data['chain_stats']['funded_txo_sum']) + ',' +
+        str(data['chain_stats']['spent_txo_count']) + ',' +
+        str(data['chain_stats']['spent_txo_sum']) + ',' +
+        str(data['chain_stats']['tx_count']) + ',' +
+        now.strftime("%Y-%m-%d %H:%M:%S")
+    )
+
+
+def print_electrum_data(address, data, now):
+    """Print CSV line for Electrum data."""
+    print(
+        address + ',' +
+        'N/A' + ',' +
+        str(data['confirmed']) + ',' +
+        'N/A' + ',' +
+        'N/A' + ',' +
+        'N/A' + ',' +
+        now.strftime("%Y-%m-%d %H:%M:%S")
+    )
 
 
 def main(args):
@@ -40,40 +89,40 @@ def main(args):
           'chain_stats-tx_sum'  + ',' +
           'datetime')
     # logger.info("Starting loop")
-    i = 0
-    while i < len (addresslist):
-        sys.stderr.write(str(i) +'/' + str( len(addresslist)) + '\n')
-        address = addresslist[i]
-        api_url = mempool_api + address
-        # logger.info(api_url)
-
-        response = requests.request("GET", api_url)
-        
-
-        if response.ok:
-            response_native = json.loads(response.text)
-            now = datetime.now()
-            print(
-                response_native['address'] + ',' +
-                str(response_native['chain_stats']['funded_txo_count']) + ',' +
-                str(response_native['chain_stats']['funded_txo_sum']) + ',' +
-                str(response_native['chain_stats']['spent_txo_count']) + ',' +
-                str(response_native['chain_stats']['spent_txo_sum']) + ',' +
-                str(response_native['chain_stats']['tx_count']) +',' +
-                now.strftime("%Y-%m-%d %H:%M:%S")
-            )
-            time.sleep(shortdelay) 
-            i = i + 1
-        else:
-            # logger.error("No success on url: "+api_url)
-            sys.stderr.write("No success on url: "+api_url)
-            time.sleep(longdelay)  # long time in case we are blocked
-            if shortdelay == 0:
-                shortdelay = 1
-            if longdelay == 0:
-                longdelay = 30
-            shortdelay = shortdelay * args.increment
-            longdelay = longdelay * args.increment
+    for i, address in enumerate(addresslist):
+        sys.stderr.write(f"{i}/{len(addresslist)}\n")
+        now = datetime.now()
+        try:
+            if args.mode == 'mempool':
+                data = get_balance_mempool(address)
+                print_mempool_data(data, now)
+            elif args.mode == 'electrum':
+                data = get_balance_electrum(address, args.electrum_server)
+                print_electrum_data(address, data, now)
+            elif args.mode == 'both':
+                # Try Electrum first for speed, fallback to Mempool
+                try:
+                    data = get_balance_electrum(address, args.electrum_server)
+                    print_electrum_data(address, data, now)
+                except Exception as e:
+                    sys.stderr.write(f"Electrum failed for {address}, trying Mempool: {e}\n")
+                    data = get_balance_mempool(address)
+                    print_mempool_data(data, now)
+            elif args.mode == 'fallback':
+                # Same as both for now
+                try:
+                    data = get_balance_electrum(address, args.electrum_server)
+                    print_electrum_data(address, data, now)
+                except Exception as e:
+                    sys.stderr.write(f"Electrum failed for {address}, trying Mempool: {e}\n")
+                    data = get_balance_mempool(address)
+                    print_mempool_data(data, now)
+            time.sleep(shortdelay)
+        except Exception as e:
+            sys.stderr.write(f"Error for {address}: {e}\n")
+            time.sleep(longdelay)
+            shortdelay = max(shortdelay * args.increment, 1)
+            longdelay = max(longdelay * args.increment, 30)
 
     # logger.info('-done-')
 
@@ -97,6 +146,11 @@ if __name__ == "__main__":
                         default=30, help="Delay on error in seconds between api default 30")
     parser.add_argument("-i", "--increment", action="store",
                         default=2, help="incremeting multiplier for delays default 2")                        
+    parser.add_argument("--mode", action="store",
+                        default="fallback", choices=["mempool", "electrum", "both", "fallback"],
+                        help="Query mode: mempool, electrum, both, or fallback (default: fallback)")
+    parser.add_argument("--electrum-server", action="store",
+                        default="localhost:50002", help="Electrum server address:port (default: localhost:50002)")
 
     # Optional argument which requires a parameter (eg. -d test)
     # parser.add_argument("-n", "--name", action="store", dest="name")
